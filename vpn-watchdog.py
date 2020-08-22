@@ -19,53 +19,44 @@ class TestColor:
     ENDC = '\033[0m'
 
 
-vpn_restart = 'service vpn restart'
-vpn_status = 'service vpn status'
+def run_command(command):
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    output, error = process.communicate()
+    return output.decode(), error, process.returncode
 
 
 def get_packet_loss_percent():
-    bash_command = "ping -c 10 1.1.1.1"
-    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-    output, error = process.communicate()
-    # print(f'\nOutput: {output.decode()}')
+    output, error, return_code = run_command(command="ping -c 10 1.1.1.1")
 
-    if 'unreachable' in output.decode().lower():
+    if 'unreachable' in output.lower():
         return 100
 
-    if len(output.decode()) == 0:
+    if len(output) == 0:
         return 100
 
-    packet_loss = re.findall('(\d*% packet loss)', output.decode())[0]
+    packet_loss = re.findall('(\d*% packet loss)', output)[0]
     print(f'\nping 1.1.1.1, {packet_loss}')
-    packet_loss_percent = packet_loss.replace('% packet loss', '')
-    return int(packet_loss_percent)
+    return int(packet_loss.replace('% packet loss', ''))
 
 
 def reset_vpn_service():
     print(f'{TestColor.BOLD}Reset the vpn service{TestColor.ENDC}')
-    process = subprocess.Popen(vpn_restart.split(), stdout=subprocess.PIPE)
-    output, error = process.communicate()
-    #print(f'Output: {output.decode()}')
-
     while True:
-        process = subprocess.Popen(vpn_restart.split(), stdout=subprocess.PIPE)
-        output, error = process.communicate()
-        if process.returncode == 0:
+        output, error, return_code = run_command(command='service vpn restart')
+        if return_code == 0:
             return
 
         time.sleep(15)
-        process = subprocess.Popen(vpn_restart.split(), stdout=subprocess.PIPE)
-        output, error = process.communicate()
 
 
 def status_vpn_service():
-    process = subprocess.Popen(vpn_status.split(), stdout=subprocess.PIPE)
-    output, error = process.communicate()
-    if process.returncode == 0:
+    output, error, return_code = run_command(command='service vpn status')
+    if return_code == 0:
         print(f'{TestColor.OK_GREEN}VPN Is Active{TestColor.ENDC}')
         return True
+
     else:
-        print(f'{TestColor.FAIL_RED}VPN Is Inactive{TestColor.ENDC}')
+        print(f'{TestColor.FAIL_RED}VPN Is Deactive{TestColor.ENDC}')
         return False
 
 

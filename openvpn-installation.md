@@ -71,3 +71,22 @@ apt-get --only-upgrade install openvpn
 Once the upgrade is done, please verify the new version and also check if
    the old configurations are still there.
 
+
+### Tips:
+
+It seems you're using OpenVPN 2.3.9.
+Options such as **block-outside-dns** and **tls-crypt** are available only in 
+the OpenVPN 2.4.x. You can upgrade your OpenVPN and use the same .ovpn file.
+
+
+As far as I understand you don’t need this command in Linux. The command
+**block-outside-dns** is for windows only. To achieve the proper **DNS**
+configuration you need at least the three following lines in your `client.conf`:
+```
+script-security 2 
+up /etc/openvpn/update-resolv-conf 
+down /etc/openvpn/update-resolv-conf
+```
+`/etc/openvpn/update-resolv-conf` is the standard path if you didn't change it
+after openvpn installation via apt-get.
+
